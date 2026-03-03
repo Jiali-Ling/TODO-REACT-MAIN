@@ -2,10 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Form from "./components/Form";
 import FilterButton from "./components/FilterButton";
 import Todo from "./components/Todo";
-
-function createTodoId() {
-  return `todo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
+import { nanoid } from "nanoid";
 
 function usePrevious(value) {
   const ref = useRef(null);
@@ -13,6 +10,16 @@ function usePrevious(value) {
     ref.current = value;
   });
   return ref.current;
+}
+
+function usePersistedState(key, defaultValue) {
+  const [state, setState] = useState(
+    () => JSON.parse(localStorage.getItem(key)) || defaultValue
+  );
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
+  return [state, setState];
 }
 
 const FILTER_MAP = {
@@ -24,8 +31,8 @@ const FILTER_MAP = {
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function App(props) {
-  const [tasks, setTasks] = useState(props.tasks);
-  const [filter, setFilter] = useState("All");
+  const [tasks, setTasks] = usePersistedState("tasks", props.tasks);
+  const [lastInsertedId, setLastInsertedId] = useState("");
 
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
@@ -58,6 +65,26 @@ function App(props) {
     setTasks(editedTaskList);
   }
 
+  function locateTask(id, location) {
+    const locatedTaskList = tasks.map((task) => {
+      if (id === task.id) {
+        return { ...task, location: location };
+      }
+      return task;
+    });
+    setTasks(locatedTaskList);
+  }
+
+  function photoedTask(id) {
+    const photoedTaskList = tasks.map((task) => {
+      if (id === task.id) {
+        return { ...task, photo: true };
+      }
+      return task;
+    });
+    setTasks(photoedTaskList);
+  }
+
   const taskList = tasks
     ?.filter(FILTER_MAP[filter])
     .map((task) => (
@@ -66,11 +93,40 @@ function App(props) {
         name={task.name}
         completed={task.completed}
         key={task.id}
+        location={task.location} // 新增
+        latitude={task.location?.latitude} // 新增
+        longitude={task.location?.longitude} // 新增
+        photoedTask={photoedTask} // 新增
         toggleTaskCompleted={toggleTaskCompleted}
         deleteTask={deleteTask}
         editTask={editTask}
       />
     ));
+
+    const geoFindMe = () => {
+    if (!navigator.geolocation) {
+      console.log("Geolocation is not supported by your browser");
+    } else {
+      console.log("Locating...");
+      navigator.geolocation.getCurrentPosition(success, error);
+    }
+  };
+
+  const success = (position) => {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    locateTask(lastInsertedId, {
+      latitude: latitude,
+      longitude: longitude,
+      error: "",
+      mapURL: `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`,
+      smsURL: `sms:?body=I am at ${latitude}, ${longitude}`
+    });
+  };
+
+  const error = () => {
+    console.log("Unable to retrieve your location");
+  };
 
   const filterList = FILTER_NAMES.map((name) => (
     <FilterButton
@@ -82,7 +138,14 @@ function App(props) {
   ));
 
   function addTask(name) {
-    const newTask = { id: createTodoId(), name: name, completed: false };
+    const id = "todo-" + nanoid();
+    const newTask = { 
+      id: id, 
+      name: name, 
+      completed: false,
+      location: { latitude: "##", longitude: "##", error: "##" } 
+    };
+    setLastInsertedId(id);
     setTasks([...tasks, newTask]);
   }
 
@@ -101,7 +164,7 @@ function App(props) {
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
-      <Form addTask={addTask} />
+      <Form addTask={addTask} geoFindMe={geoFindMe} />
       <div className="filters btn-group stack-exception">{filterList}</div>
       <h2 id="list-heading" tabIndex="-1" ref={listHeadingRef}>
         {headingText}
@@ -118,3 +181,5 @@ function App(props) {
 }
 
 export default App;
+
+

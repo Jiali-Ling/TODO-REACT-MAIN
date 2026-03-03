@@ -1,14 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Form(props) {
-  const [name, setName] = useState('');
+  const { addTask, geoFindMe } = props;
+  const [name, setName] = useState("");
+  const [addition, setAddition] = useState(false);
+
+  useEffect(() => {
+    if (addition) {
+      console.log("useEffect detected addition");
+      geoFindMe();
+      setAddition(false);
+    }
+  }, [addition, geoFindMe]);
 
   // NOTE: As written, this function has a bug: it doesn't prevent the user
   // from submitting an empty form. This is left as an exercise for developers
   // working through MDN's React tutorial.
   function handleSubmit(event) {
     event.preventDefault();
-    props.addTask(name);
+    if (!name.trim()) {
+      return;
+    }
+    setAddition(true);
+    addTask(name);
     setName("");
   }
 

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
+import Webcam from "react-webcam";
+import { addPhoto, GetPhotoSrc } from "../db.jsx";
 
 function usePrevious(value) {
   const ref = useRef(null);
@@ -7,6 +11,59 @@ function usePrevious(value) {
   });
   return ref.current;
 }
+
+const WebcamCapture = (props) => {
+  const webcamRef = useRef(null);
+  const [imgSrc, setImgSrc] = useState(null);
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImgSrc(imageSrc);
+  }, [webcamRef, setImgSrc]);
+
+  const savePhoto = (id, imgSrc) => {
+    addPhoto(id, imgSrc);
+  };
+
+  const cancelPhoto = () => {
+    setImgSrc(null);
+  };
+
+  return (
+    <>
+      {!imgSrc && (
+        <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
+      )}
+      {imgSrc && <img src={imgSrc} alt="captured" />} 
+      <div className="btn-group">
+        {!imgSrc && (
+          <button type="button" className="btn" onClick={capture}>
+            Capture photo
+          </button>
+        )}
+        {imgSrc && (
+          <button type="button" className="btn" onClick={() => savePhoto(props.id, imgSrc)}>
+            Save Photo
+          </button>
+        )}
+        {imgSrc && (
+          <button type="button" className="btn todo-cancel" onClick={cancelPhoto}>
+            Cancel
+          </button>
+        )}
+      </div>
+    </>
+  );
+};
+
+const ViewPhoto = (props) => {
+  const photoSrc = GetPhotoSrc(props.id);
+  return (
+    <div>
+      {photoSrc ? <img src={photoSrc} alt={props.name} /> : <p>No photo available</p>}
+    </div>
+  );
+};
 
 function Todo(props) {
   const [isEditing, setEditing] = useState(false);
@@ -73,18 +130,39 @@ function Todo(props) {
         />
         <label className="todo-label" htmlFor={props.id}>
           {props.name}
+          <br/>
+          {props.location && props.location.mapURL && (
+            <span>
+              <a href={props.location.mapURL} target="_blank" rel="noreferrer">(map)</a> 
+              &nbsp; | &nbsp; 
+              <a href={props.location.smsURL}>(sms)</a>
+            </span>
+          )}
+          <br/>
+          <small>{props.latitude && props.longitude ? `${props.latitude}, ${props.longitude}` : ""}</small>
         </label>
       </div>
       <div className="btn-group">
         <button
           type="button"
           className="btn"
-          onClick={() => {
-            setEditing(true);
-          }}
+          onClick={() => setEditing(true)}
           ref={editButtonRef}>
           Edit <span className="visually-hidden">{props.name}</span>
         </button>
+        
+        <Popup trigger={<button type="button" className="btn">Take Photo</button>} modal>
+          <div>
+            <WebcamCapture id={props.id} />
+          </div>
+        </Popup>
+
+        <Popup trigger={<button type="button" className="btn">View Photo</button>} modal>
+          <div>
+            <ViewPhoto id={props.id} name={props.name} />
+          </div>
+        </Popup>
+
         <button
           type="button"
           className="btn btn__danger"

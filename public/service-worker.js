@@ -11,6 +11,11 @@ const CORE_ASSETS = [
   "/icons/iconDWT-512.png",
 ];
 
+self.addEventListener("install", (event) => {
+  console.log("Service worker installing...");
+  // 离线缓存逻辑可以在这里添加
+});
+
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
