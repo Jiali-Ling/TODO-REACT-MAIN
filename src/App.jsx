@@ -32,6 +32,7 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function App(props) {
   const [tasks, setTasks] = usePersistedState("tasks", props.tasks);
+  const [filter, setFilter] = useState("All");
   const [lastInsertedId, setLastInsertedId] = useState("");
 
   function toggleTaskCompleted(id) {
@@ -181,5 +182,4 @@ function App(props) {
 }
 
 export default App;
-
 

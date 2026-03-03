@@ -16,13 +16,28 @@ const WebcamCapture = (props) => {
   const webcamRef = useRef(null);
   const [imgSrc, setImgSrc] = useState(null);
 
+  const [imgId, setImgId] = useState(null);
+  const [photoSave, setPhotoSave] = useState(false);
+
+  useEffect(() =>{
+    if (photoSave) {
+      console.log("useEffect detected photoSave");
+      if (props.photoedTask) {
+        props.photoedTask(imgId);
+      }
+      setPhotoSave(false);
+    }
+  }, [photoSave, imgId, props]);
+
   const capture = useCallback(() => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImgSrc(imageSrc);
   }, [webcamRef, setImgSrc]);
 
   const savePhoto = (id, imgSrc) => {
-    addPhoto(id, imgSrc);
+    addPhoto(id, imgSrc); // 存入 IndexedDB
+    setImgId(id);         // 新增：记录被拍照的任务 ID
+    setPhotoSave(true);   // 新增：触发 useEffect 里的状态更新
   };
 
   const cancelPhoto = () => {
@@ -153,7 +168,7 @@ function Todo(props) {
         
         <Popup trigger={<button type="button" className="btn">Take Photo</button>} modal>
           <div>
-            <WebcamCapture id={props.id} />
+            <WebcamCapture id={props.id} photoedTask={props.photoedTask} />
           </div>
         </Popup>
 
