@@ -2,7 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import Form from "./components/Form";
 import FilterButton from "./components/FilterButton";
 import Todo from "./components/Todo";
-import { nanoid } from "nanoid";
+
+function createTodoId() {
+  return `todo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 function usePrevious(value) {
   const ref = useRef(null);
@@ -79,7 +82,7 @@ function App(props) {
   ));
 
   function addTask(name) {
-    const newTask = { id: "todo-" + nanoid(), name: name, completed: false };
+    const newTask = { id: createTodoId(), name: name, completed: false };
     setTasks([...tasks, newTask]);
   }
 
