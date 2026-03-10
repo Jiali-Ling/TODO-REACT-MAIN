@@ -4,6 +4,7 @@ import "reactjs-popup/dist/index.css";
 import Webcam from "react-webcam";
 import { addPhoto, GetPhotoSrc } from "../db.jsx";
 
+// 自定义 Hook：保存前一个值
 function usePrevious(value) {
   const ref = useRef(null);
   useEffect(() => {
@@ -12,6 +13,7 @@ function usePrevious(value) {
   return ref.current;
 }
 
+// Webcam 拍照组件
 const WebcamCapture = (props) => {
   const webcamRef = useRef(null);
   const [imgSrc, setImgSrc] = useState(null);
@@ -48,7 +50,7 @@ const WebcamCapture = (props) => {
       {!imgSrc && (
         <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
       )}
-      {imgSrc && <img src={imgSrc} alt="captured" />} 
+      {imgSrc && <img src={imgSrc} alt="captured" />}
       <div className="btn-group">
         {!imgSrc && (
           <button type="button" className="btn" onClick={capture}>
@@ -56,12 +58,20 @@ const WebcamCapture = (props) => {
           </button>
         )}
         {imgSrc && (
-          <button type="button" className="btn" onClick={() => savePhoto(props.id, imgSrc)}>
+          <button 
+            type="button" 
+            className="btn" 
+            onClick={() => savePhoto(props.id, imgSrc)}
+          >
             Save Photo
           </button>
         )}
         {imgSrc && (
-          <button type="button" className="btn todo-cancel" onClick={cancelPhoto}>
+          <button 
+            type="button" 
+            className="btn todo-cancel" 
+            onClick={cancelPhoto}
+          >
             Cancel
           </button>
         )}
@@ -70,15 +80,21 @@ const WebcamCapture = (props) => {
   );
 };
 
+// 查看照片组件
 const ViewPhoto = (props) => {
   const photoSrc = GetPhotoSrc(props.id);
   return (
     <div>
-      {photoSrc ? <img src={photoSrc} alt={props.name} /> : <p>No photo available</p>}
+      {photoSrc ? (
+        <img src={photoSrc} alt={props.name} />
+      ) : (
+        <p>No photo available</p>
+      )}
     </div>
   );
 };
 
+// Todo 组件 - 显示单个待办事项
 function Todo(props) {
   const [isEditing, setEditing] = useState(false);
   const [newName, setNewName] = useState("");
@@ -88,12 +104,14 @@ function Todo(props) {
 
   const wasEditing = usePrevious(isEditing);
 
-  function handleChange(event) {
-    setNewName(event.target.value);
+  // 处理输入变化
+  function handleChange(e) {
+    setNewName(e.target.value);
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
+  // 提交编辑
+  function handleSubmit(e) {
+    e.preventDefault();
     if (!newName.trim()) {
       return;
     }
@@ -102,6 +120,7 @@ function Todo(props) {
     setEditing(false);
   }
 
+  // 编辑模板
   const editingTemplate = (
     <form className="stack-small" onSubmit={handleSubmit}>
       <div className="form-group">
@@ -121,7 +140,8 @@ function Todo(props) {
         <button
           type="button"
           className="btn todo-cancel"
-          onClick={() => setEditing(false)}>
+          onClick={() => setEditing(false)}
+        >
           Cancel
           <span className="visually-hidden">renaming {props.name}</span>
         </button>
@@ -133,6 +153,7 @@ function Todo(props) {
     </form>
   );
 
+  // 查看模板
   const viewTemplate = (
     <div className="stack-small">
       <div className="c-cb">
@@ -160,17 +181,24 @@ function Todo(props) {
           type="button"
           className="btn"
           onClick={() => setEditing(true)}
-          ref={editButtonRef}>
+          ref={editButtonRef}
+        >
           Edit <span className="visually-hidden">{props.name}</span>
         </button>
-        
-        <Popup trigger={<button type="button" className="btn">Take Photo</button>} modal>
+
+        <Popup 
+          trigger={<button type="button" className="btn">Take Photo</button>} 
+          modal
+        >
           <div>
             <WebcamCapture id={props.id} photoedTask={props.photoedTask} />
           </div>
         </Popup>
 
-        <Popup trigger={<button type="button" className="btn">View Photo</button>} modal>
+        <Popup 
+          trigger={<button type="button" className="btn">View Photo</button>} 
+          modal
+        >
           <div>
             <ViewPhoto id={props.id} name={props.name} />
           </div>
@@ -179,7 +207,8 @@ function Todo(props) {
         <button
           type="button"
           className="btn btn__danger"
-          onClick={() => props.deleteTask(props.id)}>
+          onClick={() => props.deleteTask(props.id)}
+        >
           Delete <span className="visually-hidden">{props.name}</span>
         </button>
       </div>
@@ -194,7 +223,7 @@ function Todo(props) {
     }
   }, [wasEditing, isEditing]);
 
-  return <li className="todo">{isEditing ? editingTemplate : viewTemplate}</li>;
+  return <li className="todo stack-small">{isEditing ? editingTemplate : viewTemplate}</li>;
 }
 
 export default Todo;

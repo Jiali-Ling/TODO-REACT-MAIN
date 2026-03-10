@@ -1,33 +1,36 @@
 import { useState, useEffect } from "react";
 
+// Form 组件 - 用于添加新的待办事项
+// props.addTask: 回调函数，用于将新任务添加到任务列表
+// props.geoFindMe: 回调函数，用于获取地理位置
 function Form(props) {
-  const { addTask, geoFindMe } = props;
   const [name, setName] = useState("");
   const [addition, setAddition] = useState(false);
 
   useEffect(() => {
     if (addition) {
       console.log("useEffect detected addition");
-      geoFindMe();
+      props.geoFindMe(); // 调用父组件传递的地理位置回调
       setAddition(false);
     }
-  }, [addition, geoFindMe]);
+  }, [addition, props]);
 
-  // NOTE: As written, this function has a bug: it doesn't prevent the user
-  // from submitting an empty form. This is left as an exercise for developers
-  // working through MDN's React tutorial.
+  // 处理表单提交
   function handleSubmit(event) {
     event.preventDefault();
+    // 验证输入不为空
     if (!name.trim()) {
       return;
     }
+    // 调用父组件传递的回调函数 addTask
+    props.addTask(name);
     setAddition(true);
-    addTask(name);
     setName("");
   }
 
-  function handleChange(event) {
-    setName(event.target.value);
+  // 处理输入变化 Reading user input
+  function handleChange(e) {
+    setName(e.target.value);
   }
 
   return (
