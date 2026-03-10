@@ -15,11 +15,10 @@ function usePrevious(value) {
 const WebcamCapture = (props) => {
   const webcamRef = useRef(null);
   const [imgSrc, setImgSrc] = useState(null);
-
   const [imgId, setImgId] = useState(null);
   const [photoSave, setPhotoSave] = useState(false);
 
-  useEffect(() =>{
+  useEffect(() => {
     if (photoSave) {
       console.log("useEffect detected photoSave");
       if (props.photoedTask) {
@@ -35,9 +34,9 @@ const WebcamCapture = (props) => {
   }, [webcamRef, setImgSrc]);
 
   const savePhoto = (id, imgSrc) => {
-    addPhoto(id, imgSrc); // 存入 IndexedDB
-    setImgId(id);         // 新增：记录被拍照的任务 ID
-    setPhotoSave(true);   // 新增：触发 useEffect 里的状态更新
+    addPhoto(id, imgSrc);
+    setImgId(id);
+    setPhotoSave(true);
   };
 
   const cancelPhoto = () => {
@@ -93,11 +92,11 @@ function Todo(props) {
     setNewName(event.target.value);
   }
 
-  // NOTE: As written, this function has a bug: it doesn't prevent the user
-  // from submitting an empty form. This is left as an exercise for developers
-  // working through MDN's React tutorial.
   function handleSubmit(event) {
     event.preventDefault();
+    if (!newName.trim()) {
+      return;
+    }
     props.editTask(props.id, newName);
     setNewName("");
     setEditing(false);
@@ -145,16 +144,15 @@ function Todo(props) {
         />
         <label className="todo-label" htmlFor={props.id}>
           {props.name}
-          <br/>
-          {props.location && props.location.mapURL && (
+          {props.location && props.location.latitude && props.location.longitude && (
             <span>
-              <a href={props.location.mapURL} target="_blank" rel="noreferrer">(map)</a> 
-              &nbsp; | &nbsp; 
-              <a href={props.location.smsURL}>(sms)</a>
+              {" | la "}
+              {props.location.latitude}
+              {" lo "}
+              {props.location.longitude}
+              {" "}
             </span>
           )}
-          <br/>
-          <small>{props.latitude && props.longitude ? `${props.latitude}, ${props.longitude}` : ""}</small>
         </label>
       </div>
       <div className="btn-group">
