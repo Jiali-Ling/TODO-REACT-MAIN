@@ -60,7 +60,10 @@ function App(props) {
   // 回调函数：切换任务完成状态（传递给 Todo 组件）
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
+      // 如果任务 ID 匹配，则切换完成状态
       if (id === task.id) {
+        // 返回一个新的任务对象，切换 completed 属性
+        // 使用展开运算符保留其他属性不变
         return { ...task, completed: !task.completed };
       }
       return task;
@@ -72,6 +75,7 @@ function App(props) {
   function deleteTask(id) {
     const remainingTasks = tasks.filter((task) => id !== task.id);
     setTasks(remainingTasks);
+    localStorage.setItem("tasks-w06", JSON.stringify(remainingTasks));
   }
 
   // 回调函数：编辑任务名称（传递给 Todo 组件）
